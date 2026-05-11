@@ -557,14 +557,16 @@ function autoAssign(){
 
       // ── Pass 2 (fallback): ถ้าไม่มีคนเลย → ผ่อนกฎ quota=0 แต่ยังรักษา block/avoid/ห้ามซ้ำวัน ──
       if(!chosen){
-        let fb = PEOPLE.filter(p=>{
-          if((S.blocks[p]||new Set()).has(d))   return false;
-          if(assignedToday.has(p))              return false;
-          if(!S.allowConsec.includes(p) && lastWorked[p]===di-1) return false;
-          if(S.avoids.some(([x,y])=>
-            (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
-          return true;
-        });
+     let fb = PEOPLE.filter(p=>{
+  if((S.blocks[p]||new Set()).has(d))   return false;
+  if(assignedToday.has(p))              return false;
+  if((S.quota[p][pos]||0)===0)          return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามใช้
+  if(!S.allowConsec.includes(p) && lastWorked[p]===di-1) return false;
+  if(S.avoids.some(([x,y])=>
+    (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
+  return true;
+});
+
         fb = shuffle(fb);
         fb.sort((a,b)=>{
           const aR=POSITIONS.reduce((s,pp)=>s+(rem[a][pp]||0),0);
@@ -576,13 +578,15 @@ function autoAssign(){
 
       // ── Pass 3 (last resort): ผ่อน no-consec ด้วย ──
       if(!chosen){
-        let fb2 = PEOPLE.filter(p=>{
-          if((S.blocks[p]||new Set()).has(d)) return false;
-          if(assignedToday.has(p))            return false;
-          if(S.avoids.some(([x,y])=>
-            (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
-          return true;
-        });
+  let fb2 = PEOPLE.filter(p=>{
+  if((S.blocks[p]||new Set()).has(d)) return false;
+  if(assignedToday.has(p))            return false;
+  if((S.quota[p][pos]||0)===0)        return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามใช้เด็ดขาด
+  if(S.avoids.some(([x,y])=>
+    (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
+  return true;
+});
+
         fb2 = shuffle(fb2);
         chosen = fb2[0]||null;
       }
@@ -750,10 +754,16 @@ function renderResult(){
 function cellChange(d,pos,val){
   if(!S.schedule[d]) S.schedule[d]={};
   if(val){
+    // เช็คชื่อซ้ำในวันเดียวกัน
     const dup=Object.entries(S.schedule[d]).find(([p2,v2])=>v2===val&&p2!==pos);
     if(dup){
       alert(`⚠ ${val} ถูก assign ในตำแหน่ง "${dup[0]}" ของวันที่ ${d} ไปแล้ว\n1 คนอยู่ได้เพียง 1 ตำแหน่งต่อวัน`);
       renderResult();return;
+    }
+    // เช็คโควต้าตำแหน่งนั้น
+    if((S.quota[val][pos]||0)===0){
+      const ok=confirm(`⚠ ${val} ไม่มีโควต้าในตำแหน่ง "${pos}"\nยืนยันการจัดเวรลงตำแหน่งนี้หรือไม่?`);
+      if(!ok){renderResult();return;}
     }
   }
   S.schedule[d][pos]=val||null;
