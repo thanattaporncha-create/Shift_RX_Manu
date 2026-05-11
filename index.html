@@ -143,7 +143,10 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
   <div class="card">
     <div class="card-title">เงื่อนไขพิเศษ</div>
     <div style="margin-bottom:14px">
-      <div class="label">อยากอยู่เวรวันเดียวกัน (pair) — ระบบจะพยายามจัดให้อยู่ด้วยกันทุกวัน</div>
+      <div class="label">
+        อยากอยู่เวรวันเดียวกัน (pair) — ระบบจะจัดให้อยู่ด้วยกันโดยจับคู่ตำแหน่ง:<br>
+        <span style="color:#185FA5">KMO1↔KMO2 · KMOเตรียมยา0.5↔KMOmanage0.5 · TPN1↔TPN2</span>
+      </div>
       <div id="pair-tags" style="margin-bottom:6px"></div>
       <div class="row">
         <select id="pa" style="flex:1"></select>
@@ -215,6 +218,33 @@ const PEOPLE    = ['OP','SK','NC','TT','SO','MP','PC','CK','KM','ST','LK','MT'];
 const POSITIONS = ['KMO1','KMO2','KMOเตรียมยา0.5','KMOmanage0.5','TPN1','TPN2'];
 const POS5      = POSITIONS.filter(p => p !== 'KMOmanage0.5');
 const POS6      = POSITIONS;
+
+// [FIX 2] ตารางจับคู่ตำแหน่งสำหรับ pair: เมื่อคน A ได้ pos X, คน B ต้องได้ pos Y
+const PAIR_POS_MAP = {
+  'KMO1'           : 'KMO2',
+  'KMO2'           : 'KMO1',
+  'KMOเตรียมยา0.5' : 'KMOmanage0.5',
+  'KMOmanage0.5'   : 'KMOเตรียมยา0.5',
+  'TPN1'           : 'TPN2',
+  'TPN2'           : 'TPN1',
+};
+
+// ─── Person colors ────────────────────────────────────────────────────────────
+const PERSON_COLORS = {
+  OP: '#C2185B', // ชมพูเข้ม
+  SK: '#1565C0', // น้ำเงิน
+  NC: '#0288D1', // ฟ้า
+  TT: '#F48FB1', // ชมพูอ่อน (text ต้องเข้มพอ)
+  SO: '#212121', // ดำ
+  MP: '#E65100', // ส้ม
+  PC: '#6A1B9A', // ม่วง
+  CK: '#2E7D32', // เขียวเข้ม
+  KM: '#00695C', // เขียวน้ำทะเล
+  ST: '#4527A0', // ม่วงน้ำเงิน
+  LK: '#827717', // เขียวมะกอก
+  MT: '#BF360C', // น้ำตาลแดง
+};
+function pColor(p){ return PERSON_COLORS[p]||'#5f5e5a'; }
 
 const MONTH_NAMES_TH = [
   '','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม',
@@ -477,121 +507,187 @@ function shuffle(arr){
   return a;
 }
 
-// ตรวจสอบว่าคนนี้อยู่เวรวันที่ติดกัน (วันที่ห่างกัน 1 วันพอดี) กับวันปัจจุบันหรือไม่
 function isConsecutive(lastDay, currentDay){
   return currentDay - lastDay === 1;
 }
 
+// [FIX 2] หา pair partner ของคน p (ถ้ามี) และ expected position ของ partner
+// คืนค่า {partner, expectedPos} หรือ null ถ้าไม่มี pair
+function getPairInfo(p, assignedPosMap){
+  for(const [x,y] of S.pairs){
+    const partner = x===p ? y : y===p ? x : null;
+    if(!partner) continue;
+    // ถ้า partner อยู่แล้ว คืน expected pos สำหรับ p
+    if(assignedPosMap[partner]!==undefined){
+      const expectedPos = PAIR_POS_MAP[assignedPosMap[partner]];
+      return {partner, expectedPos};
+    }
+    // ถ้า p เองยังไม่ได้อยู่ แต่ partner ยังไม่ได้อยู่ก็ไม่รู้ expected pos
+    return {partner, expectedPos: null};
+  }
+  return null;
+}
+
 // ─── AUTO ASSIGN ─────────────────────────────────────────────────────────────
-function autoAssign(){
-  const shiftDays  = getShiftDays();
-  const sortedDays = shiftDays.map(d=>d.d).sort((a,b)=>a-b);
-  const schedule   = {};
+// คำนวณ quota deviation score (ต่ำ = ดี): ผลรวม |actual - quota| ต่อคนต่อตำแหน่ง
+function scoreSchedule(sched, cntMap){
+  let score=0;
+  PEOPLE.forEach(p=>{
+    POSITIONS.forEach(pos=>{
+      const q=S.quota[p][pos]||0;
+      const a=cntMap[p][pos]||0;
+      score += Math.abs(a - q);
+    });
+  });
+  return score;
+}
+
+function runOnce(sortedDays){
+  const schedule={};
   sortedDays.forEach(d=>schedule[d]={});
 
-  // remaining quota per person per position
-  const rem={};
-  PEOPLE.forEach(p=>{
-    rem[p]={};
-    POSITIONS.forEach(pos=>rem[p][pos]=S.quota[p][pos]||0);
-  });
+  // quota=0 ห้ามเด็ดขาด, quota>0 อนุญาต +1 เป็น hard cap ใน pass1
+  // pass2 ผ่อน cap, pass3 ผ่อน consec ด้วย
+  function getHardCap(p, pos){
+    const q=S.quota[p][pos]||0;
+    if(q===0) return 0;
+    return q+1;
+  }
 
-  // lastWorked เก็บ "วันที่จริง" ล่าสุดที่แต่ละคนอยู่เวร
+  const cnt={};
+  PEOPLE.forEach(p=>{ cnt[p]={}; POSITIONS.forEach(pos=>cnt[p][pos]=0); });
   const lastWorked={};
   PEOPLE.forEach(p=>lastWorked[p]=-99);
 
   for(const d of sortedDays){
-    const slots     = S.slots[d]||5;
-    const positions = slots===6?POS6:POS5;
-    const assignedToday = new Set(); // ป้องกันชื่อซ้ำในวันเดียวกัน
+    const slots=S.slots[d]||5;
+    const positions=slots===6?POS6:POS5;
+    const assignedToday=new Set();
+    const assignedPosMap={};
 
-    // ─── จัดการ pair ก่อน ────────────────────────────────────────────────────
-    // รวบรวม pair ทั้งหมดและจัดกลุ่ม
-    // เราจะ pre-assign pair members ให้อยู่วันเดียวกันก่อน แล้วค่อยเติมส่วนที่เหลือ
+    const isEligible=(p,pos,allowOverCap,allowConsec)=>{
+      if((S.blocks[p]||new Set()).has(d))   return false;
+      if(assignedToday.has(p))              return false;
+      if((S.quota[p][pos]||0)===0)          return false; // quota=0 ห้ามเด็ดขาด
+      if(!allowOverCap && cnt[p][pos]>=getHardCap(p,pos)) return false;
+      if(!allowConsec && !S.allowConsec.includes(p) && isConsecutive(lastWorked[p],d)) return false;
+      if(S.avoids.some(([x,y])=>(x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
+      return true;
+    };
 
-    positions.forEach(pos=>{
-
-      // ── ฟังก์ชันตรวจสอบพื้นฐาน ──────────────────────────────────────────
-      const isEligible=(p,allowOverQuota=false,allowConsecOverride=false)=>{
-        if((S.blocks[p]||new Set()).has(d))         return false; // blocked
-        if(assignedToday.has(p))                    return false; // อยู่วันนี้แล้ว
-        if((S.quota[p][pos]||0)===0)                return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามเด็ดขาด
-        if(!allowOverQuota&&(rem[p][pos]||0)<=0)    return false; // quota หมด
-        if(!allowConsecOverride&&!S.allowConsec.includes(p)&&isConsecutive(lastWorked[p],d)) return false;
-        if(S.avoids.some(([x,y])=>(x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
-        return true;
-      };
-
-      // ── Pass 1: มี quota + ผ่านทุกเงื่อนไข ──────────────────────────────
-      let candidates=PEOPLE.filter(p=>isEligible(p,false,false));
-
-      // สุ่มก่อนเพื่อกระจาย bias
-      candidates=shuffle(candidates);
-
-      // เรียงลำดับ:
-      // 1) pair partner อยู่แล้ว → ให้ priority สูงสุด
-      // 2) คนที่มี pair แต่ partner ยังไม่ได้อยู่วันนี้ → ให้ priority รองลงมา (รอ partner)
-      // 3) quota เหลือเยอะ
-      candidates.sort((a,b)=>{
-        // pair partner อยู่วันนี้แล้ว
-        const aPartnerHere=S.pairs.some(([x,y])=>(x===a&&assignedToday.has(y))||(y===a&&assignedToday.has(x)));
-        const bPartnerHere=S.pairs.some(([x,y])=>(x===b&&assignedToday.has(y))||(y===b&&assignedToday.has(x)));
-        if(bPartnerHere!==aPartnerHere) return bPartnerHere?1:-1;
-
-        // quota เหลือ
-        const aR=POSITIONS.reduce((s,pp)=>s+(rem[a][pp]||0),0);
-        const bR=POSITIONS.reduce((s,pp)=>s+(rem[b][pp]||0),0);
+    // เรียงลำดับผู้สมัคร: คน quota-remaining ของตำแหน่งนั้นมากสุดก่อน
+    // (quota_pos - cnt_pos) ยิ่งมาก ยิ่งต้องการตำแหน่งนี้มาก
+    const sortCandidates=(cands, pos)=>{
+      return shuffle(cands).sort((a,b)=>{
+        // pair partner อยู่วันนี้แล้ว → priority สูงสุด
+        const aPH=S.pairs.some(([x,y])=>(x===a&&assignedToday.has(y))||(y===a&&assignedToday.has(x)));
+        const bPH=S.pairs.some(([x,y])=>(x===b&&assignedToday.has(y))||(y===b&&assignedToday.has(x)));
+        if(bPH!==aPH) return bPH?1:-1;
+        // quota remaining ของตำแหน่งนั้นโดยตรง (สำคัญที่สุด)
+        const aRpos=(S.quota[a][pos]||0)-cnt[a][pos];
+        const bRpos=(S.quota[b][pos]||0)-cnt[b][pos];
+        if(bRpos!==aRpos) return bRpos-aRpos;
+        // quota remaining รวมทุกตำแหน่ง
+        const aR=POSITIONS.reduce((s,pp)=>s+(S.quota[a][pp]||0)-cnt[a][pp],0);
+        const bR=POSITIONS.reduce((s,pp)=>s+(S.quota[b][pp]||0)-cnt[b][pp],0);
         return bR-aR;
       });
+    };
 
-      // ── ตรวจว่ามี pair ที่ยัง "รอ" partner อยู่ไหม ──────────────────────
-      // ถ้า pair [A,B]: A อยู่แล้วแต่ B ยังไม่ได้อยู่ ให้พยายามดึง B ก่อน
-      // หรือถ้า B อยู่แล้วแต่ A ยังไม่ได้ ให้พยายามดึง A ก่อน
-      let pairBoost=null;
-      for(const [x,y] of S.pairs){
-        if(assignedToday.has(x)&&!assignedToday.has(y)&&candidates.includes(y)){
-          pairBoost=y;break;
+    const assignPos=(pos)=>{
+      if(schedule[d][pos]!==undefined) return;
+
+      // ตรวจว่า pos นี้มี "คู่" ที่ assign ไปแล้วหรือไม่ → forced pair partner
+      const pairedPos=Object.entries(PAIR_POS_MAP).find(([k,v])=>v===pos)?.[0];
+      let forcedPartner=null;
+      if(pairedPos && schedule[d][pairedPos]!=null){
+        const personInPaired=schedule[d][pairedPos];
+        for(const [x,y] of S.pairs){
+          const pt=x===personInPaired?y:y===personInPaired?x:null;
+          if(pt && !assignedToday.has(pt)){ forcedPartner=pt; break; }
         }
-        if(assignedToday.has(y)&&!assignedToday.has(x)&&candidates.includes(x)){
-          pairBoost=x;break;
-        }
-      }
-      if(pairBoost){
-        // ย้าย pairBoost ขึ้นมาอันดับ 1
-        candidates=[pairBoost,...candidates.filter(c=>c!==pairBoost)];
       }
 
-      let chosen=candidates[0]||null;
+      let chosen=null;
 
-      // ── Pass 2: quota หมดแล้ว แต่มีโควต้าตำแหน่งนั้น + ผ่านเงื่อนไขอื่น ──
+      // Pass 1: within quota cap + all constraints
+      if(forcedPartner && isEligible(forcedPartner,pos,false,false)){
+        chosen=forcedPartner;
+      }
       if(!chosen){
-        let fb=PEOPLE.filter(p=>isEligible(p,true,false));
-        fb=shuffle(fb);
-        fb.sort((a,b)=>{
-          const aR=POSITIONS.reduce((s,pp)=>s+(rem[a][pp]||0),0);
-          const bR=POSITIONS.reduce((s,pp)=>s+(rem[b][pp]||0),0);
-          return bR-aR;
-        });
-        chosen=fb[0]||null;
+        const c1=sortCandidates(PEOPLE.filter(p=>isEligible(p,pos,false,false)), pos);
+        chosen=c1[0]||null;
       }
-
-      // ── Pass 3: ผ่อน no-consec ด้วย แต่ยังต้องมีโควต้าตำแหน่งนั้น ────────
+      // Pass 2: relax quota cap (allow over cap)
       if(!chosen){
-        let fb2=PEOPLE.filter(p=>isEligible(p,true,true));
-        fb2=shuffle(fb2);
-        chosen=fb2[0]||null;
+        const c2=sortCandidates(PEOPLE.filter(p=>isEligible(p,pos,true,false)), pos);
+        chosen=c2[0]||null;
+      }
+      // Pass 3: relax quota cap + no-consec
+      if(!chosen){
+        const c3=sortCandidates(PEOPLE.filter(p=>isEligible(p,pos,true,true)), pos);
+        chosen=c3[0]||null;
       }
 
       schedule[d][pos]=chosen;
       if(chosen){
-        if((rem[chosen][pos]||0)>0) rem[chosen][pos]--;
+        cnt[chosen][pos]++;
         assignedToday.add(chosen);
-        lastWorked[chosen]=d; // บันทึกวันที่จริง
+        assignedPosMap[chosen]=pos;
+        lastWorked[chosen]=d;
+
+        // pair: pre-assign partner ไปตำแหน่งคู่ทันที
+        const partnerPos=PAIR_POS_MAP[pos];
+        if(partnerPos && positions.includes(partnerPos) && schedule[d][partnerPos]===undefined){
+          let pairPartner=null;
+          for(const [x,y] of S.pairs){
+            if(x===chosen&&!assignedToday.has(y)){pairPartner=y;break;}
+            if(y===chosen&&!assignedToday.has(x)){pairPartner=x;break;}
+          }
+          if(pairPartner){
+            const pe= isEligible(pairPartner,partnerPos,false,false)
+                   || isEligible(pairPartner,partnerPos,true,false)
+                   || isEligible(pairPartner,partnerPos,true,true);
+            // ใช้ pass ที่ผ่านได้
+            let ppElig=false;
+            if(isEligible(pairPartner,partnerPos,false,false)) ppElig=true;
+            else if(isEligible(pairPartner,partnerPos,true,false)) ppElig=true;
+            else if(isEligible(pairPartner,partnerPos,true,true)) ppElig=true;
+            if(ppElig){
+              schedule[d][partnerPos]=pairPartner;
+              cnt[pairPartner][partnerPos]++;
+              assignedToday.add(pairPartner);
+              assignedPosMap[pairPartner]=partnerPos;
+              lastWorked[pairPartner]=d;
+            }
+          }
+        }
       }
-    });
+    };
+
+    positions.forEach(pos=>assignPos(pos));
+    positions.forEach(pos=>{ if(schedule[d][pos]===undefined) schedule[d][pos]=null; });
   }
 
-  S.schedule=schedule;
+  return {schedule, cnt};
+}
+
+function autoAssign(){
+  const shiftDays=getShiftDays();
+  const sortedDays=shiftDays.map(d=>d.d).sort((a,b)=>a-b);
+  if(!sortedDays.length){ showTab('result'); return; }
+
+  // รัน 200 รอบ เลือก solution ที่ quota deviation น้อยสุด
+  const RUNS=200;
+  let bestSchedule=null, bestScore=Infinity;
+  for(let i=0;i<RUNS;i++){
+    const {schedule,cnt}=runOnce(sortedDays);
+    const sc=scoreSchedule(schedule,cnt);
+    if(sc<bestScore){ bestScore=sc; bestSchedule=schedule; }
+    if(sc===0) break; // perfect — หยุดได้เลย
+  }
+
+  S.schedule=bestSchedule;
   showTab('result');
 }
 
@@ -629,7 +725,7 @@ function renderResult(){
     });
   });
 
-  // warnings
+  // warnings — แสดงเฉพาะ: ชื่อซ้ำในวัน + อยู่ติดกัน + block
   const warns=[];
   sortedDays.forEach((d,idx)=>{
     const assigned=Object.values(S.schedule[d]).filter(Boolean);
@@ -638,16 +734,16 @@ function renderResult(){
     // ชื่อซ้ำในวันเดียวกัน
     const seen=new Set();
     assigned.forEach(p=>{
-      if(seen.has(p))warns.push(`${p} ถูก assign มากกว่า 1 ตำแหน่งในวันที่ ${d}`);
+      if(seen.has(p))warns.push(`${p} มีชื่อซ้ำมากกว่า 1 ตำแหน่งในวันที่ ${d}`);
       seen.add(p);
     });
 
-    // วันที่ติดกัน (ห่างกัน 1 วันพอดี)
+    // วันที่ติดกัน
     if(prev&&d-prev===1){
       const prevA=Object.values(S.schedule[prev]).filter(Boolean);
       assigned.forEach(p=>{
         if(prevA.includes(p)&&!S.allowConsec.includes(p))
-          warns.push(`${p} อยู่วันที่ ${prev} และ ${d} ติดกัน (ห่างกัน 1 วัน)`);
+          warns.push(`${p} อยู่วันที่ ${prev} และวันที่ ${d} ติดกัน`);
       });
     }
 
@@ -656,20 +752,18 @@ function renderResult(){
       if((S.blocks[p]||new Set()).has(d))
         warns.push(`${p} ถูก assign วันที่ ${d} ทั้งที่ระบุว่าอยู่ไม่ได้`);
     });
-
-    // ไม่มีโควต้าตำแหน่งนั้น
-    Object.entries(S.schedule[d]).forEach(([pos,p])=>{
-      if(p&&(S.quota[p][pos]||0)===0)
-        warns.push(`${p} อยู่ตำแหน่ง ${pos} วันที่ ${d} โดยไม่มีโควต้าตำแหน่งนี้`);
-    });
   });
 
   const warnEl=document.getElementById('warn-area');
   warnEl.innerHTML=warns.length
-    ?`<div class="warn-box">⚠ ตรวจพบปัญหา:${warns.map(w=>`• ${w}`).join('')}</div>`
+    ?`<div class="warn-box">⚠ ตรวจพบปัญหา:<ul style="margin:6px 0 0 18px;line-height:1.8">${warns.map(w=>`<li>${w}</li>`).join('')}</ul></div>`
     :`<div class="ok-box">✓ ไม่พบปัญหาเงื่อนไข</div>`;
 
-  const usedPos=[...new Set(sortedDays.flatMap(d=>Object.keys(S.schedule[d]||{})))];
+  // [FIX 1] เรียง column ตาม POSITIONS เสมอ (ไม่ใช้ usedPos แบบ Set random)
+  const usedPos = POSITIONS.filter(pos =>
+    sortedDays.some(d => Object.keys(S.schedule[d]||{}).includes(pos))
+  );
+
   const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
   const TYPE_LABEL={sat:'เสาร์',sun:'อาทิตย์',hol:'นักขัต'};
 
@@ -682,7 +776,8 @@ function renderResult(){
 
   sortedDays.forEach(d=>{
     const t   =getDayType(d);
-    const cls ={sat:'cell-sat',sun:'cell-sun',hol:'cell-hol'}[t]||'';
+    // ไม่ใส่ background สีแถว — ใช้แค่ border เบาๆ แยกเสาร์/อาทิตย์/นักขัต
+    const rowBorder={sat:'border-left:3px solid #185FA5',sun:'border-left:3px solid #A32D2D',hol:'border-left:3px solid #C8881A'}[t]||'';
     const{y,m}=getMonthInfo();
     const dow =new Date(y,m-1,d).getDay();
     const dayName=DAY_TH[dow];
@@ -691,7 +786,7 @@ function renderResult(){
     const expected=S.slots[d]||5;
     const fillColor=filled<expected?'#A32D2D':'#3B6D11';
 
-    html+=`<tr class="${cls}">
+    html+=`<tr style="${rowBorder}">
       <td class="date-col" style="padding:7px 10px">วันที่ ${d} <span style="font-size:10px;color:#5f5e5a">${typeName}</span></td>
       <td style="font-weight:600">${dayName}</td>`;
 
@@ -701,15 +796,21 @@ function renderResult(){
       const val=S.schedule[d][pos];
       const isBlockWarn=val&&(S.blocks[val]||new Set()).has(d);
       const isDup=val&&Object.entries(S.schedule[d]||{}).some(([p2,v2])=>v2===val&&p2!==pos);
-      const noQuota=val&&(S.quota[val][pos]||0)===0;
-      const bgStyle=(isDup||isBlockWarn||noQuota)?'background:#FAEEDA':'';
-      const bdrColor=(isDup||isBlockWarn||noQuota)?'#F7C1C1':'#d3d1c7';
-      html+=`<td style="${bgStyle}">
-        <select style="width:62px;font-size:11px;padding:3px 4px;border:1px solid ${bdrColor};border-radius:5px"
-          onchange="cellChange(${d},'${pos}',this.value)">
-          <option value="">--</option>
-          ${PEOPLE.map(p=>`<option${p===val?' selected':''}>${p}</option>`).join('')}
-        </select></td>`;
+      const cellBg=(isDup||isBlockWarn)?'background:#FAEEDA':'';
+      const bdrColor=(isDup||isBlockWarn)?'#F7C1C1':'#d3d1c7';
+      // colored name badge + select (select โปร่งใส ซ้อนทับ badge)
+      const nameDisplay = val
+        ? `<span style="font-weight:700;color:${pColor(val)};font-size:12px">${val}</span>`
+        : `<span style="color:#b4b2a9;font-size:11px">--</span>`;
+      html+=`<td style="padding:4px 5px;${cellBg}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+          ${nameDisplay}
+          <select style="width:58px;font-size:10px;padding:2px 2px;border:1px solid ${bdrColor};border-radius:4px;color:#5f5e5a;background:#fafaf8"
+            onchange="cellChange(${d},'${pos}',this.value)">
+            <option value="">--</option>
+            ${PEOPLE.map(p=>`<option${p===val?' selected':''}>${p}</option>`).join('')}
+          </select>
+        </div></td>`;
     });
 
     html+=`<td style="font-weight:600;color:${fillColor}">${filled}/${expected}</td></tr>`;
@@ -734,9 +835,18 @@ function renderResult(){
         const quota=POSITIONS.reduce((s,pos)=>s+(S.quota[p][pos]||0),0);
         const actual=cnt[p].total;
         const diff=actual-quota;
-        const dc=diff>0?'#A32D2D':diff<0?'#854F0B':'#3B6D11';
-        return`<tr><td style="font-weight:600;text-align:left;padding:4px 8px">${p}</td>
-          ${POSITIONS.map(pos=>`<td style="font-size:11px">${cnt[p][pos]||0}/${S.quota[p][pos]||0}</td>`).join('')}
+        const dc=diff>0?'#A32D2D':diff<0?'#185FA5':'#3B6D11';
+        const posCells = POSITIONS.map(pos=>{
+          const q=S.quota[p][pos]||0;
+          const a=cnt[p][pos]||0;
+          let cellStyle='font-size:12px;';
+          if(q>0 && a>q)       cellStyle+='background:#FDECEA;color:#A32D2D;font-weight:600;';
+          else if(q>0 && a<q)  cellStyle+='background:#E3F2FD;color:#1565C0;font-weight:600;';
+          return`<td style="${cellStyle}">${a}/${q}</td>`;
+        }).join('');
+        return`<tr>
+          <td style="font-weight:700;text-align:left;padding:4px 8px;color:${pColor(p)}">${p}</td>
+          ${posCells}
           <td class="total-col">${actual}</td><td>${quota}</td>
           <td style="color:${dc};font-weight:600">${diff===0?'✓':diff>0?'+'+diff:diff}</td></tr>`;
       }).join('')}</tbody>
@@ -747,13 +857,12 @@ function renderResult(){
 function cellChange(d,pos,val){
   if(!S.schedule[d])S.schedule[d]={};
   if(val){
-    // ห้ามชื่อซ้ำในวันเดียวกัน
+    // ล็อคชื่อซ้ำในวันเดียวกัน — ห้ามเด็ดขาด ไม่มี confirm
     const dup=Object.entries(S.schedule[d]).find(([p2,v2])=>v2===val&&p2!==pos);
     if(dup){
-      alert(`⚠ ${val} ถูก assign ในตำแหน่ง "${dup[0]}" ของวันที่ ${d} ไปแล้ว\n1 คนอยู่ได้เพียง 1 ตำแหน่งต่อวัน`);
+      alert(`⛔ ไม่สามารถบันทึกได้\n${val} อยู่ในตำแหน่ง "${dup[0]}" ของวันที่ ${d} แล้ว\n1 คนอยู่ได้เพียง 1 ตำแหน่งต่อวันเท่านั้น`);
       renderResult();return;
     }
-    // แจ้งเตือนถ้าไม่มีโควต้าตำแหน่งนี้
     if((S.quota[val][pos]||0)===0){
       const ok=confirm(`⚠ ${val} ไม่มีโควต้าในตำแหน่ง "${pos}"\nยืนยันการจัดเวรลงตำแหน่งนี้หรือไม่?`);
       if(!ok){renderResult();return;}
@@ -775,7 +884,8 @@ function printSchedule(){
 function exportCSV(){
   const sd=getShiftDays();
   const sortedDays=sd.map(d=>d.d).sort((a,b)=>a-b);
-  const usedPos=[...new Set(sortedDays.flatMap(d=>Object.keys(S.schedule[d]||{})))];
+  // [FIX 1] เรียง column ตาม POSITIONS
+  const usedPos=POSITIONS.filter(pos=>sortedDays.some(d=>Object.keys(S.schedule[d]||{}).includes(pos)));
   const{y,m}=getMonthInfo();
   const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
   const hdr=`วันที่,วัน,${usedPos.join(',')}`;
