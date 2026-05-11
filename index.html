@@ -27,8 +27,6 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 .stat-card{background:#f1efe8;border-radius:8px;padding:10px 14px;flex:1;min-width:90px}
 .stat-card .sv{font-size:20px;font-weight:600}
 .stat-card .sl{font-size:11px;color:#5f5e5a;margin-top:2px}
-
-/* Calendar */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .cal-hdr{text-align:center;font-size:11px;color:#888780;font-weight:600;padding:4px 0}
 .cal-cell{text-align:center;padding:6px 2px;font-size:12px;border-radius:6px;min-height:30px;display:flex;align-items:center;justify-content:center}
@@ -37,29 +35,21 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 .cal-cell.hol{color:#854F0B;font-weight:600;background:#FAEEDA;cursor:pointer}
 .cal-cell.work{color:#5f5e5a;cursor:pointer}
 .cal-cell.work:hover{background:#f1efe8}
-
-/* Shift list */
 .shift-item{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border:1px solid #d3d1c7;border-radius:8px;margin-bottom:4px;font-size:13px}
 .badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 .badge-sat{background:#E6F1FB;color:#185FA5}
 .badge-sun{background:#FCEBEB;color:#A32D2D}
 .badge-hol{background:#FAEEDA;color:#854F0B}
-
-/* Quota table */
 .quota-table{width:100%;border-collapse:collapse;font-size:13px}
 .quota-table th{background:#f1efe8;font-weight:600;padding:8px 6px;text-align:center;border:1px solid #d3d1c7;font-size:12px}
 .quota-table td{border:1px solid #d3d1c7;padding:5px 6px;text-align:center;vertical-align:middle}
 .quota-table .total-col{background:#f1efe8;font-weight:600}
 .quota-table input[type=number]{width:60px;text-align:center;padding:5px 4px;font-size:14px;border-radius:6px}
-
-/* Block list */
 .block-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f1efe8;font-size:13px}
 .block-row:last-child{border:none}
 .block-day{padding:6px 11px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #d3d1c7;background:#f1efe8;color:#5f5e5a;transition:all 0.15s;min-width:36px;text-align:center}
 .block-day:hover{background:#e0ddd5}
 .block-day.on{background:#C0392B;color:#fff;border-color:#922B21;box-shadow:0 1px 4px rgba(160,0,0,0.18)}
-
-/* Result table — transposed */
 .result-wrap{overflow-x:auto}
 .result-table{border-collapse:collapse;font-size:12px;width:100%}
 .result-table th,.result-table td{border:1px solid #d3d1c7;padding:6px 8px;text-align:center;white-space:nowrap}
@@ -69,8 +59,6 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 .cell-sun{background:#FFF0F0}
 .cell-hol{background:#FFFBF0}
 .cell-off{background:#f5f5f3;color:#b4b2a9;font-size:10px}
-
-/* Tags */
 .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:12px;font-size:12px;border:1px solid #d3d1c7;background:#f1efe8;margin:2px}
 .tag .rm{cursor:pointer;opacity:0.5;font-size:11px}
 .tag .rm:hover{opacity:1;color:#A32D2D}
@@ -78,18 +66,13 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 .ok-box{background:#EAF3DE;color:#3B6D11;font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:10px}
 .hol-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:12px;font-size:12px;border:1px solid #FAC775;background:#FAEEDA;color:#854F0B;margin:2px}
 .hol-tag .rm{cursor:pointer;opacity:0.6}
-
-/* Result cell select */
-.result-table select{width:58px;font-size:11px;padding:2px 3px;border-radius:5px;border:1px solid #d3d1c7}
-
-/* Print */
+.result-table select{width:62px;font-size:11px;padding:3px 4px;border-radius:5px;border:1px solid #d3d1c7}
 @media print{
   .no-print{display:none!important}
   body{background:#fff}
   .app{max-width:100%;padding:0}
   .card{border:none;padding:0}
   .result-table th,.result-table td{font-size:10px;padding:4px 5px}
-  #print-area{display:block}
 }
 </style>
 </head>
@@ -134,7 +117,9 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 <div id="tab-quota" style="display:none">
   <div class="card">
     <div class="card-title">กำหนดจำนวนเวรในแต่ละตำแหน่งต่อคน (เดือนนี้)</div>
-    <div style="font-size:12px;color:#5f5e5a;margin-bottom:10px">แก้ไขตัวเลขในช่องได้โดยตรง · ค่าเริ่มต้น = 1 ทุกช่อง</div>
+    <div style="font-size:12px;color:#5f5e5a;margin-bottom:10px">
+      แก้ไขตัวเลขในช่องได้โดยตรง · ค่าเริ่มต้น = 1 ทุกช่อง · <strong>ช่องที่เป็น 0 = คนนั้นไม่มีสิทธิ์ตำแหน่งนั้น</strong>
+    </div>
     <div style="overflow-x:auto">
       <table class="quota-table" id="quota-table"></table>
     </div>
@@ -158,7 +143,7 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
   <div class="card">
     <div class="card-title">เงื่อนไขพิเศษ</div>
     <div style="margin-bottom:14px">
-      <div class="label">อยากอยู่เวรวันเดียวกัน (pair)</div>
+      <div class="label">อยากอยู่เวรวันเดียวกัน (pair) — ระบบจะพยายามจัดให้อยู่ด้วยกันทุกวัน</div>
       <div id="pair-tags" style="margin-bottom:6px"></div>
       <div class="row">
         <select id="pa" style="flex:1"></select>
@@ -178,8 +163,11 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
       </div>
     </div>
     <div>
-      <div class="label">ไม่ควรอยู่เวรติดกัน 2 วัน (ใช้กับทุกคนโดยอัตโนมัติ สามารถยกเว้นบางคนได้)</div>
-      <div id="nocon-tags" style="margin-bottom:6px"></div>
+      <div class="label">
+        ไม่ควรอยู่เวรวันที่ติดกัน (วันที่ห่างกัน 1 วันพอดี เช่น 27→28) — ใช้กับทุกคนโดยอัตโนมัติ
+        <br><span style="color:#854F0B">สามารถเพิ่มชื่อด้านล่างเพื่อ "ยกเว้น" กฎนี้สำหรับคนนั้น</span>
+      </div>
+      <div id="nocon-tags" style="margin-bottom:6px;margin-top:6px"></div>
       <div class="row">
         <select id="ncs" style="flex:1"></select>
         <button class="btn sm" onclick="addNoCon()">ยกเว้นคนนี้ (อนุญาตให้ติดกันได้)</button>
@@ -234,118 +222,108 @@ const MONTH_NAMES_TH = [
 ];
 
 const DEF_BLOCKS = {
-  OP:[9,10,16,17,31], SK:[], NC:[], TT:[2,3], SO:[30,31],
-  MP:[], PC:[], CK:[16,17], KM:[30,31], ST:[9,10,23,24], LK:[23,24], MT:[]
+  OP:[9,10,16,17,31],SK:[],NC:[],TT:[2,3],SO:[30,31],
+  MP:[],PC:[],CK:[16,17],KM:[30,31],ST:[9,10,23,24],LK:[23,24],MT:[]
 };
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let S = {
-  monthKey : '2026-5',
-  holidays : new Set(),
-  slots    : {},
-  quota    : {},
-  blocks   : {},
-  pairs    : [['SK','NC']],
-  avoids   : [],
-  allowConsec : [],   // คนที่ "ยกเว้น" กฎ noConsec (ค่าปกติ = ทุกคนห้ามติดกัน)
-  schedule : {}
+  monthKey   : '2026-5',
+  holidays   : new Set(),
+  slots      : {},
+  quota      : {},
+  blocks     : {},
+  pairs      : [['SK','NC']],
+  avoids     : [],
+  allowConsec: [],
+  schedule   : {}
 };
 
 function initQuota(){
-  PEOPLE.forEach(p => {
-    S.quota[p] = {};
-    POSITIONS.forEach(pos => S.quota[p][pos] = 1); // default = 1
-    S.blocks[p] = new Set(DEF_BLOCKS[p] || []);
+  PEOPLE.forEach(p=>{
+    S.quota[p]={};
+    POSITIONS.forEach(pos=>S.quota[p][pos]=1);
+    S.blocks[p]=new Set(DEF_BLOCKS[p]||[]);
   });
 }
 initQuota();
 
-// ─── Build month dropdown ─────────────────────────────────────────────────────
+// ─── Month dropdown ───────────────────────────────────────────────────────────
 function buildMonthOptions(){
-  const sel = document.getElementById('sel-month');
-  const startY = 2026, startM = 5, endY = startY + 60;
-  let html = '';
-  for(let y = startY; y <= endY; y++){
-    const mStart = (y === startY) ? startM : 1;
-    for(let m = mStart; m <= 12; m++){
-      const key = `${y}-${m}`;
-      html += `<option value="${key}">${MONTH_NAMES_TH[m]} ${y+543}</option>`;
+  const sel=document.getElementById('sel-month');
+  const startY=2026,startM=5,endY=startY+60;
+  let html='';
+  for(let y=startY;y<=endY;y++){
+    const mStart=(y===startY)?startM:1;
+    for(let m=mStart;m<=12;m++){
+      html+=`<option value="${y}-${m}">${MONTH_NAMES_TH[m]} ${y+543}</option>`;
     }
   }
-  sel.innerHTML = html;
+  sel.innerHTML=html;
 }
 
 // ─── Month helpers ────────────────────────────────────────────────────────────
 function getMonthInfo(){
-  const [y,m] = S.monthKey.split('-').map(Number);
-  const days   = new Date(y,m,0).getDate();
-  const offset = new Date(y,m-1,1).getDay();
-  return {y,m,days,offset};
+  const [y,m]=S.monthKey.split('-').map(Number);
+  return{y,m,days:new Date(y,m,0).getDate(),offset:new Date(y,m-1,1).getDay()};
 }
 function getDayType(d){
-  const {y,m} = getMonthInfo();
-  const dow = new Date(y,m-1,d).getDay();
-  if(dow===6) return 'sat';
-  if(dow===0) return 'sun';
-  if(S.holidays.has(d)) return 'hol';
-  return 'work';
+  const{y,m}=getMonthInfo();
+  const dow=new Date(y,m-1,d).getDay();
+  if(dow===6)return'sat';
+  if(dow===0)return'sun';
+  if(S.holidays.has(d))return'hol';
+  return'work';
 }
 function getShiftDays(){
-  const {days} = getMonthInfo();
+  const{days}=getMonthInfo();
   const arr=[];
   for(let d=1;d<=days;d++){const t=getDayType(d);if(t!=='work')arr.push({d,t});}
   return arr;
 }
 function getMonthLabel(){
-  const [y,m] = S.monthKey.split('-').map(Number);
-  return `${MONTH_NAMES_TH[m]} ${y+543}`;
+  const[y,m]=S.monthKey.split('-').map(Number);
+  return`${MONTH_NAMES_TH[m]} ${y+543}`;
 }
 
 // ─── Month change ─────────────────────────────────────────────────────────────
 function onMonthChange(){
-  S.monthKey = document.getElementById('sel-month').value;
-  S.holidays = new Set();
-  S.slots    = {};
-  S.schedule = {};
+  S.monthKey=document.getElementById('sel-month').value;
+  S.holidays=new Set();S.slots={};S.schedule={};
   buildAll();
 }
-function buildAll(){
-  renderCalendar();
-  renderHolTags();
-  renderDayStats();
-  renderShiftList();
-}
+function buildAll(){renderCalendar();renderHolTags();renderDayStats();renderShiftList();}
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
 function renderCalendar(){
-  const {days,offset} = getMonthInfo();
-  const H = ['อา','จ','อ','พ','พฤ','ศ','ส'];
-  let html = H.map(h=>`<div class="cal-hdr">${h}</div>`).join('');
-  for(let i=0;i<offset;i++) html+=`<div></div>`;
+  const{days,offset}=getMonthInfo();
+  const H=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  let html=H.map(h=>`<div class="cal-hdr">${h}</div>`).join('');
+  for(let i=0;i<offset;i++)html+=`<div></div>`;
   for(let d=1;d<=days;d++){
-    const t = getDayType(d);
-    const clickable = t==='work'||t==='hol';
-    const title = t==='work'?'คลิกเพิ่มเป็นวันหยุดนักขัต':t==='hol'?'คลิกยกเลิกวันหยุดนักขัต':'';
+    const t=getDayType(d);
+    const clickable=t==='work'||t==='hol';
+    const title=t==='work'?'คลิกเพิ่มเป็นวันหยุดนักขัต':t==='hol'?'คลิกยกเลิกวันหยุดนักขัต':'';
     html+=`<div class="cal-cell ${t}"${clickable?` onclick="toggleHol(${d})" title="${title}"`:''}}>${d}</div>`;
   }
-  document.getElementById('calendar').innerHTML = html;
+  document.getElementById('calendar').innerHTML=html;
 }
 function toggleHol(d){
-  if(S.holidays.has(d)) S.holidays.delete(d); else S.holidays.add(d);
+  if(S.holidays.has(d))S.holidays.delete(d);else S.holidays.add(d);
   buildAll();
 }
 function renderHolTags(){
   const arr=[...S.holidays].sort((a,b)=>a-b);
-  document.getElementById('hol-tags').innerHTML = arr.length
-    ? arr.map(d=>`<span class="hol-tag">วันที่ ${d} <span class="rm" onclick="toggleHol(${d})">✕</span></span>`).join('')
-    : `<span style="font-size:12px;color:#b4b2a9">ยังไม่มีวันหยุดนักขัต</span>`;
+  document.getElementById('hol-tags').innerHTML=arr.length
+    ?arr.map(d=>`<span class="hol-tag">วันที่ ${d} <span class="rm" onclick="toggleHol(${d})">✕</span></span>`).join('')
+    :`<span style="font-size:12px;color:#b4b2a9">ยังไม่มีวันหยุดนักขัต</span>`;
 }
 function renderDayStats(){
-  const sd  = getShiftDays();
-  const sat = sd.filter(d=>d.t==='sat').length;
-  const sun = sd.filter(d=>d.t==='sun').length;
-  const hol = sd.filter(d=>d.t==='hol').length;
-  const total = sat*6+(sun+hol)*5;
+  const sd=getShiftDays();
+  const sat=sd.filter(d=>d.t==='sat').length;
+  const sun=sd.filter(d=>d.t==='sun').length;
+  const hol=sd.filter(d=>d.t==='hol').length;
+  const total=sat*6+(sun+hol)*5;
   document.getElementById('day-stats').innerHTML=`
     <div class="stat-card"><div class="sv">${sat}</div><div class="sl">เสาร์ (6 ตำแหน่ง)</div></div>
     <div class="stat-card"><div class="sv">${sun}</div><div class="sl">อาทิตย์ (5 ตำแหน่ง)</div></div>
@@ -353,15 +331,15 @@ function renderDayStats(){
     <div class="stat-card"><div class="sv">${total}</div><div class="sl">รวมตำแหน่ง/เดือน</div></div>`;
 }
 function renderShiftList(){
-  const sd = getShiftDays();
-  sd.forEach(({d,t})=>{if(!S.slots[d]) S.slots[d]=t==='sat'?6:5;});
-  const el = document.getElementById('shift-list');
+  const sd=getShiftDays();
+  sd.forEach(({d,t})=>{if(!S.slots[d])S.slots[d]=t==='sat'?6:5;});
+  const el=document.getElementById('shift-list');
   if(!sd.length){el.innerHTML='<div style="color:#888780;font-size:13px">ยังไม่มีวันเวร</div>';return;}
-  el.innerHTML = sd.map(({d,t})=>{
-    const bc={'sat':'badge-sat','sun':'badge-sun','hol':'badge-hol'}[t];
-    const tl={'sat':'เสาร์','sun':'อาทิตย์','hol':'นักขัต'}[t];
-    const slots = S.slots[d]||5;
-    return `<div class="shift-item">
+  el.innerHTML=sd.map(({d,t})=>{
+    const bc={sat:'badge-sat',sun:'badge-sun',hol:'badge-hol'}[t];
+    const tl={sat:'เสาร์',sun:'อาทิตย์',hol:'นักขัต'}[t];
+    const slots=S.slots[d]||5;
+    return`<div class="shift-item">
       <span><span class="badge ${bc}">${tl}</span>&nbsp;&nbsp;วันที่ ${d}</span>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:11px;color:#5f5e5a">ตำแหน่ง</span>
@@ -380,17 +358,17 @@ function chSlot(d,delta){
 // ─── Tab switching ────────────────────────────────────────────────────────────
 function showTab(t){
   ['setup','quota','cond','result'].forEach((id,i)=>{
-    document.getElementById('tab-'+id).style.display = id===t?'':'none';
+    document.getElementById('tab-'+id).style.display=id===t?'':'none';
     document.querySelectorAll('.tab')[i].classList.toggle('active',id===t);
   });
-  if(t==='quota')  renderQuotaTable();
-  if(t==='cond')   {renderBlockList();renderConditions();}
+  if(t==='quota') renderQuotaTable();
+  if(t==='cond'){renderBlockList();renderConditions();}
   if(t==='result') renderResult();
 }
 
-// ─── Quota table (default=1, no +/- buttons) ─────────────────────────────────
+// ─── Quota table ──────────────────────────────────────────────────────────────
 function renderQuotaTable(){
-  const tbl = document.getElementById('quota-table');
+  const tbl=document.getElementById('quota-table');
   let html=`<thead><tr><th style="text-align:left;min-width:54px">คน</th>`;
   POSITIONS.forEach(pos=>html+=`<th style="min-width:90px">${pos}</th>`);
   html+=`<th class="total-col">รวมเวร</th></tr></thead><tbody>`;
@@ -400,16 +378,14 @@ function renderQuotaTable(){
     POSITIONS.forEach(pos=>{
       const sid=`q_${p}_${pos.replace(/[^a-zA-Z0-9]/g,'_')}`;
       html+=`<td><input type="number" id="${sid}" min="0" max="31" value="${S.quota[p][pos]??1}"
-        onchange="qChange('${p}','${pos}',this.value)" style="width:60px;font-size:14px;padding:5px 4px"></td>`;
+        onchange="qChange('${p}','${pos}',this.value)"></td>`;
     });
-    html+=`<td class="total-col" id="qt_${p}" style="font-size:14px">${total}</td></tr>`;
+    html+=`<td class="total-col" id="qt_${p}">${total}</td></tr>`;
   });
-  // column totals
   html+=`<tr style="border-top:2px solid #b4b2a9"><td style="font-weight:600;text-align:left;padding:6px 10px">รวม/ตำแหน่ง</td>`;
   POSITIONS.forEach(pos=>{
     const t=PEOPLE.reduce((s,p)=>s+(S.quota[p][pos]||0),0);
-    const sid=`qcol_${pos.replace(/[^a-zA-Z0-9]/g,'_')}`;
-    html+=`<td class="total-col" id="${sid}">${t}</td>`;
+    html+=`<td class="total-col" id="qcol_${pos.replace(/[^a-zA-Z0-9]/g,'_')}">${t}</td>`;
   });
   const grand=PEOPLE.reduce((s,p)=>s+POSITIONS.reduce((ss,pos)=>ss+(S.quota[p][pos]||0),0),0);
   html+=`<td class="total-col" style="font-weight:600" id="qgrand">${grand}</td></tr></tbody>`;
@@ -420,8 +396,7 @@ function qChange(p,pos,val){
   S.quota[p][pos]=Math.max(0,parseInt(val)||0);
   const total=POSITIONS.reduce((s,pp)=>s+(S.quota[p][pp]||0),0);
   const el=document.getElementById('qt_'+p);if(el)el.textContent=total;
-  const sp=pos.replace(/[^a-zA-Z0-9]/g,'_');
-  const ce=document.getElementById('qcol_'+sp);
+  const ce=document.getElementById('qcol_'+pos.replace(/[^a-zA-Z0-9]/g,'_'));
   if(ce)ce.textContent=PEOPLE.reduce((s,pp)=>s+(S.quota[pp][pos]||0),0);
   const grand=PEOPLE.reduce((s,pp)=>s+POSITIONS.reduce((ss,p2)=>ss+(S.quota[pp][p2]||0),0),0);
   const ge=document.getElementById('qgrand');if(ge)ge.textContent=grand;
@@ -442,7 +417,7 @@ function renderQuotaSummary(){
     </div>`;
 }
 
-// ─── Block list (ปุ่มใหญ่ขึ้น, สีแดงเข้มขึ้น) ────────────────────────────────
+// ─── Block list ───────────────────────────────────────────────────────────────
 function renderBlockList(){
   const shiftDays=getShiftDays().map(d=>d.d);
   document.getElementById('block-list').innerHTML=PEOPLE.map(p=>`
@@ -457,7 +432,7 @@ function renderBlockList(){
     </div>`).join('');
 }
 function toggleBlock(p,d,el){
-  if(!S.blocks[p]) S.blocks[p]=new Set();
+  if(!S.blocks[p])S.blocks[p]=new Set();
   if(S.blocks[p].has(d)){S.blocks[p].delete(d);el.classList.remove('on');}
   else{S.blocks[p].add(d);el.classList.add('on');}
 }
@@ -472,27 +447,27 @@ function renderConditions(){
   document.getElementById('avoid-tags').innerHTML=S.avoids.map((pair,i)=>
     `<span class="tag">${pair[0]} ≠ ${pair[1]} <span class="rm" onclick="S.avoids.splice(${i},1);renderConditions()">✕</span></span>`).join('');
   document.getElementById('nocon-tags').innerHTML=S.allowConsec.length
-    ? S.allowConsec.map((p,i)=>
+    ?S.allowConsec.map((p,i)=>
         `<span class="tag">ยกเว้น: ${p} <span class="rm" onclick="S.allowConsec.splice(${i},1);renderConditions()">✕</span></span>`).join('')
-    : `<span style="font-size:12px;color:#5f5e5a">ทุกคนใช้กฎนี้ (ไม่มีข้อยกเว้น)</span>`;
+    :`<span style="font-size:12px;color:#5f5e5a">ทุกคนใช้กฎนี้ (ไม่มีข้อยกเว้น)</span>`;
 }
 function addPair(){
   const a=document.getElementById('pa').value,b=document.getElementById('pb').value;
-  if(a!==b&&!S.pairs.some(x=>x[0]===a&&x[1]===b)) S.pairs.push([a,b]);
+  if(a!==b&&!S.pairs.some(x=>x[0]===a&&x[1]===b))S.pairs.push([a,b]);
   renderConditions();
 }
 function addAvoid(){
   const a=document.getElementById('aa').value,b=document.getElementById('ab').value;
-  if(a!==b&&!S.avoids.some(x=>x[0]===a&&x[1]===b)) S.avoids.push([a,b]);
+  if(a!==b&&!S.avoids.some(x=>x[0]===a&&x[1]===b))S.avoids.push([a,b]);
   renderConditions();
 }
 function addNoCon(){
   const p=document.getElementById('ncs').value;
-  if(!S.allowConsec.includes(p)) S.allowConsec.push(p);
+  if(!S.allowConsec.includes(p))S.allowConsec.push(p);
   renderConditions();
 }
 
-// ─── Shuffle helper ───────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function shuffle(arr){
   const a=[...arr];
   for(let i=a.length-1;i>0;i--){
@@ -502,136 +477,150 @@ function shuffle(arr){
   return a;
 }
 
-// ─── AUTO ASSIGN (random + no-consec global + fallback) ──────────────────────
+// ตรวจสอบว่าคนนี้อยู่เวรวันที่ติดกัน (วันที่ห่างกัน 1 วันพอดี) กับวันปัจจุบันหรือไม่
+function isConsecutive(lastDay, currentDay){
+  return currentDay - lastDay === 1;
+}
+
+// ─── AUTO ASSIGN ─────────────────────────────────────────────────────────────
 function autoAssign(){
   const shiftDays  = getShiftDays();
   const sortedDays = shiftDays.map(d=>d.d).sort((a,b)=>a-b);
   const schedule   = {};
   sortedDays.forEach(d=>schedule[d]={});
 
-  // remaining quota
+  // remaining quota per person per position
   const rem={};
   PEOPLE.forEach(p=>{
     rem[p]={};
     POSITIONS.forEach(pos=>rem[p][pos]=S.quota[p][pos]||0);
   });
 
-  // track consecutive: วันที่แต่ละคนอยู่เวรล่าสุด
-  const lastWorked={}; // person -> day index
+  // lastWorked เก็บ "วันที่จริง" ล่าสุดที่แต่ละคนอยู่เวร
+  const lastWorked={};
   PEOPLE.forEach(p=>lastWorked[p]=-99);
 
-  for(let di=0;di<sortedDays.length;di++){
-    const d       = sortedDays[di];
-    const slots   = S.slots[d]||5;
+  for(const d of sortedDays){
+    const slots     = S.slots[d]||5;
     const positions = slots===6?POS6:POS5;
-    const assignedToday = new Set();
+    const assignedToday = new Set(); // ป้องกันชื่อซ้ำในวันเดียวกัน
+
+    // ─── จัดการ pair ก่อน ────────────────────────────────────────────────────
+    // รวบรวม pair ทั้งหมดและจัดกลุ่ม
+    // เราจะ pre-assign pair members ให้อยู่วันเดียวกันก่อน แล้วค่อยเติมส่วนที่เหลือ
 
     positions.forEach(pos=>{
-      // ── Pass 1: หาคนที่ยังมี quota และผ่านทุกเงื่อนไข ──
-      let candidates = PEOPLE.filter(p=>{
-        if((S.blocks[p]||new Set()).has(d))       return false;
-        if((rem[p][pos]||0)<=0)                   return false;
-        if(assignedToday.has(p))                  return false;
-        // no-consec (ทุกคน เว้นแต่อยู่ใน allowConsec)
-        if(!S.allowConsec.includes(p) && lastWorked[p]===di-1) return false;
-        // avoid
-        if(S.avoids.some(([x,y])=>
-          (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
+
+      // ── ฟังก์ชันตรวจสอบพื้นฐาน ──────────────────────────────────────────
+      const isEligible=(p,allowOverQuota=false,allowConsecOverride=false)=>{
+        if((S.blocks[p]||new Set()).has(d))         return false; // blocked
+        if(assignedToday.has(p))                    return false; // อยู่วันนี้แล้ว
+        if((S.quota[p][pos]||0)===0)                return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามเด็ดขาด
+        if(!allowOverQuota&&(rem[p][pos]||0)<=0)    return false; // quota หมด
+        if(!allowConsecOverride&&!S.allowConsec.includes(p)&&isConsecutive(lastWorked[p],d)) return false;
+        if(S.avoids.some(([x,y])=>(x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
         return true;
-      });
+      };
 
-      // สุ่มเพื่อลด bias
-      candidates = shuffle(candidates);
+      // ── Pass 1: มี quota + ผ่านทุกเงื่อนไข ──────────────────────────────
+      let candidates=PEOPLE.filter(p=>isEligible(p,false,false));
 
-      // เรียง: pair partner อยู่แล้วก่อน → quota เหลือเยอะก่อน
+      // สุ่มก่อนเพื่อกระจาย bias
+      candidates=shuffle(candidates);
+
+      // เรียงลำดับ:
+      // 1) pair partner อยู่แล้ว → ให้ priority สูงสุด
+      // 2) คนที่มี pair แต่ partner ยังไม่ได้อยู่วันนี้ → ให้ priority รองลงมา (รอ partner)
+      // 3) quota เหลือเยอะ
       candidates.sort((a,b)=>{
-        const aP=S.pairs.some(([x,y])=>(x===a&&assignedToday.has(y))||(y===a&&assignedToday.has(x)))?1:0;
-        const bP=S.pairs.some(([x,y])=>(x===b&&assignedToday.has(y))||(y===b&&assignedToday.has(x)))?1:0;
-        if(bP!==aP) return bP-aP;
+        // pair partner อยู่วันนี้แล้ว
+        const aPartnerHere=S.pairs.some(([x,y])=>(x===a&&assignedToday.has(y))||(y===a&&assignedToday.has(x)));
+        const bPartnerHere=S.pairs.some(([x,y])=>(x===b&&assignedToday.has(y))||(y===b&&assignedToday.has(x)));
+        if(bPartnerHere!==aPartnerHere) return bPartnerHere?1:-1;
+
+        // quota เหลือ
         const aR=POSITIONS.reduce((s,pp)=>s+(rem[a][pp]||0),0);
         const bR=POSITIONS.reduce((s,pp)=>s+(rem[b][pp]||0),0);
         return bR-aR;
       });
 
-      let chosen = candidates[0]||null;
+      // ── ตรวจว่ามี pair ที่ยัง "รอ" partner อยู่ไหม ──────────────────────
+      // ถ้า pair [A,B]: A อยู่แล้วแต่ B ยังไม่ได้อยู่ ให้พยายามดึง B ก่อน
+      // หรือถ้า B อยู่แล้วแต่ A ยังไม่ได้ ให้พยายามดึง A ก่อน
+      let pairBoost=null;
+      for(const [x,y] of S.pairs){
+        if(assignedToday.has(x)&&!assignedToday.has(y)&&candidates.includes(y)){
+          pairBoost=y;break;
+        }
+        if(assignedToday.has(y)&&!assignedToday.has(x)&&candidates.includes(x)){
+          pairBoost=x;break;
+        }
+      }
+      if(pairBoost){
+        // ย้าย pairBoost ขึ้นมาอันดับ 1
+        candidates=[pairBoost,...candidates.filter(c=>c!==pairBoost)];
+      }
 
-      // ── Pass 2 (fallback): ถ้าไม่มีคนเลย → ผ่อนกฎ quota=0 แต่ยังรักษา block/avoid/ห้ามซ้ำวัน ──
+      let chosen=candidates[0]||null;
+
+      // ── Pass 2: quota หมดแล้ว แต่มีโควต้าตำแหน่งนั้น + ผ่านเงื่อนไขอื่น ──
       if(!chosen){
-     let fb = PEOPLE.filter(p=>{
-  if((S.blocks[p]||new Set()).has(d))   return false;
-  if(assignedToday.has(p))              return false;
-  if((S.quota[p][pos]||0)===0)          return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามใช้
-  if(!S.allowConsec.includes(p) && lastWorked[p]===di-1) return false;
-  if(S.avoids.some(([x,y])=>
-    (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
-  return true;
-});
-
-        fb = shuffle(fb);
+        let fb=PEOPLE.filter(p=>isEligible(p,true,false));
+        fb=shuffle(fb);
         fb.sort((a,b)=>{
           const aR=POSITIONS.reduce((s,pp)=>s+(rem[a][pp]||0),0);
           const bR=POSITIONS.reduce((s,pp)=>s+(rem[b][pp]||0),0);
           return bR-aR;
         });
-        chosen = fb[0]||null;
+        chosen=fb[0]||null;
       }
 
-      // ── Pass 3 (last resort): ผ่อน no-consec ด้วย ──
+      // ── Pass 3: ผ่อน no-consec ด้วย แต่ยังต้องมีโควต้าตำแหน่งนั้น ────────
       if(!chosen){
-  let fb2 = PEOPLE.filter(p=>{
-  if((S.blocks[p]||new Set()).has(d)) return false;
-  if(assignedToday.has(p))            return false;
-  if((S.quota[p][pos]||0)===0)        return false; // ไม่มีโควต้าตำแหน่งนี้ ห้ามใช้เด็ดขาด
-  if(S.avoids.some(([x,y])=>
-    (x===p&&assignedToday.has(y))||(y===p&&assignedToday.has(x)))) return false;
-  return true;
-});
-
-        fb2 = shuffle(fb2);
-        chosen = fb2[0]||null;
+        let fb2=PEOPLE.filter(p=>isEligible(p,true,true));
+        fb2=shuffle(fb2);
+        chosen=fb2[0]||null;
       }
 
-      schedule[d][pos] = chosen;
+      schedule[d][pos]=chosen;
       if(chosen){
         if((rem[chosen][pos]||0)>0) rem[chosen][pos]--;
         assignedToday.add(chosen);
-        lastWorked[chosen] = di;
+        lastWorked[chosen]=d; // บันทึกวันที่จริง
       }
     });
   }
 
-  S.schedule = schedule;
+  S.schedule=schedule;
   showTab('result');
 }
 
 function clearSchedule(){S.schedule={};renderResult();}
 
-// ─── Render Result (transposed: rows=วันที่, cols=ตำแหน่ง) ──────────────────
+// ─── Render Result ────────────────────────────────────────────────────────────
 function renderResult(){
   const shiftDays  = getShiftDays();
   const sortedDays = shiftDays.map(d=>d.d).sort((a,b)=>a-b);
   const label      = getMonthLabel();
 
-  // update title
-  const titleEl = document.getElementById('result-title');
-  if(titleEl) titleEl.textContent = `ตารางเวรประจำเดือน ${label}`;
-  const printTitleEl = document.getElementById('print-title-text');
-  if(printTitleEl) printTitleEl.textContent = `ตารางเวรประจำเดือน ${label}`;
+  const titleEl=document.getElementById('result-title');
+  if(titleEl)titleEl.textContent=`ตารางเวรประจำเดือน ${label}`;
+  const ptEl=document.getElementById('print-title-text');
+  if(ptEl)ptEl.textContent=`ตารางเวรประจำเดือน ${label}`;
 
   if(!sortedDays.length){
     document.getElementById('result-table').innerHTML='<tr><td>ยังไม่มีวันเวร กลับไปตั้งค่าเดือนก่อนค่ะ</td></tr>';
     return;
   }
 
-  // ensure all slots initialized
   sortedDays.forEach(d=>{
-    if(!S.schedule[d]) S.schedule[d]={};
-    const slots     = S.slots[d]||5;
-    const positions = slots===6?POS6:POS5;
-    positions.forEach(pos=>{if(S.schedule[d][pos]===undefined) S.schedule[d][pos]=null;});
+    if(!S.schedule[d])S.schedule[d]={};
+    const slots    =S.slots[d]||5;
+    const positions=slots===6?POS6:POS5;
+    positions.forEach(pos=>{if(S.schedule[d][pos]===undefined)S.schedule[d][pos]=null;});
   });
 
-  // count
+  // count actual
   const cnt={};
   PEOPLE.forEach(p=>{cnt[p]={total:0};POSITIONS.forEach(pos=>cnt[p][pos]=0);});
   sortedDays.forEach(d=>{
@@ -645,21 +634,33 @@ function renderResult(){
   sortedDays.forEach((d,idx)=>{
     const assigned=Object.values(S.schedule[d]).filter(Boolean);
     const prev=sortedDays[idx-1];
+
+    // ชื่อซ้ำในวันเดียวกัน
     const seen=new Set();
     assigned.forEach(p=>{
-      if(seen.has(p)) warns.push(`${p} ถูก assign มากกว่า 1 ตำแหน่งในวันที่ ${d}`);
+      if(seen.has(p))warns.push(`${p} ถูก assign มากกว่า 1 ตำแหน่งในวันที่ ${d}`);
       seen.add(p);
     });
-    if(prev){
+
+    // วันที่ติดกัน (ห่างกัน 1 วันพอดี)
+    if(prev&&d-prev===1){
       const prevA=Object.values(S.schedule[prev]).filter(Boolean);
       assigned.forEach(p=>{
         if(prevA.includes(p)&&!S.allowConsec.includes(p))
-          warns.push(`${p} อยู่วันที่ ${prev} และ ${d} ติดกัน`);
+          warns.push(`${p} อยู่วันที่ ${prev} และ ${d} ติดกัน (ห่างกัน 1 วัน)`);
       });
     }
+
+    // block
     assigned.forEach(p=>{
       if((S.blocks[p]||new Set()).has(d))
         warns.push(`${p} ถูก assign วันที่ ${d} ทั้งที่ระบุว่าอยู่ไม่ได้`);
+    });
+
+    // ไม่มีโควต้าตำแหน่งนั้น
+    Object.entries(S.schedule[d]).forEach(([pos,p])=>{
+      if(p&&(S.quota[p][pos]||0)===0)
+        warns.push(`${p} อยู่ตำแหน่ง ${pos} วันที่ ${d} โดยไม่มีโควต้าตำแหน่งนี้`);
     });
   });
 
@@ -668,9 +669,9 @@ function renderResult(){
     ?`<div class="warn-box">⚠ ตรวจพบปัญหา:${warns.map(w=>`• ${w}`).join('')}</div>`
     :`<div class="ok-box">✓ ไม่พบปัญหาเงื่อนไข</div>`;
 
-  // ── Transposed table: rows=วันที่, cols=ตำแหน่ง ──
-  // collect all positions used
   const usedPos=[...new Set(sortedDays.flatMap(d=>Object.keys(S.schedule[d]||{})))];
+  const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const TYPE_LABEL={sat:'เสาร์',sun:'อาทิตย์',hol:'นักขัต'};
 
   let html=`<thead><tr>
     <th class="date-col">วันที่</th>
@@ -679,35 +680,30 @@ function renderResult(){
     <th style="min-width:70px">รวม/วัน</th>
   </tr></thead><tbody>`;
 
-  const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
-  const TYPE_LABEL={sat:'เสาร์',sun:'อาทิตย์',hol:'นักขัต'};
-
   sortedDays.forEach(d=>{
-    const t   = getDayType(d);
-    const cls = {sat:'cell-sat',sun:'cell-sun',hol:'cell-hol'}[t]||'';
-    const {y,m} = getMonthInfo();
-    const dow   = new Date(y,m-1,d).getDay();
-    const dayName = DAY_TH[dow];
-    const typeName= TYPE_LABEL[t]||'';
-    const filled  = Object.values(S.schedule[d]||{}).filter(Boolean).length;
-    const expected= S.slots[d]||5;
-    const fillColor= filled<expected?'#A32D2D':'#3B6D11';
+    const t   =getDayType(d);
+    const cls ={sat:'cell-sat',sun:'cell-sun',hol:'cell-hol'}[t]||'';
+    const{y,m}=getMonthInfo();
+    const dow =new Date(y,m-1,d).getDay();
+    const dayName=DAY_TH[dow];
+    const typeName=TYPE_LABEL[t]||'';
+    const filled=Object.values(S.schedule[d]||{}).filter(Boolean).length;
+    const expected=S.slots[d]||5;
+    const fillColor=filled<expected?'#A32D2D':'#3B6D11';
 
     html+=`<tr class="${cls}">
       <td class="date-col" style="padding:7px 10px">วันที่ ${d} <span style="font-size:10px;color:#5f5e5a">${typeName}</span></td>
       <td style="font-weight:600">${dayName}</td>`;
 
     usedPos.forEach(pos=>{
-      const posExists = Object.keys(S.schedule[d]||{}).includes(pos);
-      if(!posExists){
-        html+=`<td class="cell-off">—</td>`;
-        return;
-      }
-      const val = S.schedule[d][pos];
-      const isBlockWarn = val&&(S.blocks[val]||new Set()).has(d);
-      const isDup = val&&Object.entries(S.schedule[d]||{}).some(([p2,v2])=>v2===val&&p2!==pos);
-      const bgStyle = isDup||isBlockWarn?'background:#FAEEDA':'';
-      const bdrColor= isDup||isBlockWarn?'#F7C1C1':'#d3d1c7';
+      const posExists=Object.keys(S.schedule[d]||{}).includes(pos);
+      if(!posExists){html+=`<td class="cell-off">—</td>`;return;}
+      const val=S.schedule[d][pos];
+      const isBlockWarn=val&&(S.blocks[val]||new Set()).has(d);
+      const isDup=val&&Object.entries(S.schedule[d]||{}).some(([p2,v2])=>v2===val&&p2!==pos);
+      const noQuota=val&&(S.quota[val][pos]||0)===0;
+      const bgStyle=(isDup||isBlockWarn||noQuota)?'background:#FAEEDA':'';
+      const bdrColor=(isDup||isBlockWarn||noQuota)?'#F7C1C1':'#d3d1c7';
       html+=`<td style="${bgStyle}">
         <select style="width:62px;font-size:11px;padding:3px 4px;border:1px solid ${bdrColor};border-radius:5px"
           onchange="cellChange(${d},'${pos}',this.value)">
@@ -716,13 +712,11 @@ function renderResult(){
         </select></td>`;
     });
 
-    html+=`<td style="font-weight:600;color:${fillColor}">${filled}/${expected}</td>
-    </tr>`;
+    html+=`<td style="font-weight:600;color:${fillColor}">${filled}/${expected}</td></tr>`;
   });
   html+='</tbody>';
   document.getElementById('result-table').innerHTML=html;
 
-  // stats
   const totalSlots=sortedDays.reduce((s,d)=>s+(S.slots[d]||5),0);
   const filled2=sortedDays.reduce((s,d)=>s+Object.values(S.schedule[d]||{}).filter(Boolean).length,0);
   document.getElementById('res-stats').innerHTML=`
@@ -731,7 +725,6 @@ function renderResult(){
     <div class="stat-card"><div class="sv">${filled2}</div><div class="sl">ลงเวรแล้ว</div></div>
     <div class="stat-card"><div class="sv" style="color:${totalSlots-filled2===0?'#3B6D11':'#A32D2D'}">${totalSlots-filled2}</div><div class="sl">ยังว่างอยู่</div></div>`;
 
-  // summary
   document.getElementById('res-summary').innerHTML=`
     <div style="overflow-x:auto"><table class="quota-table">
       <thead><tr><th style="text-align:left;min-width:48px">คน</th>
@@ -752,15 +745,15 @@ function renderResult(){
 
 // ─── Cell manual edit ─────────────────────────────────────────────────────────
 function cellChange(d,pos,val){
-  if(!S.schedule[d]) S.schedule[d]={};
+  if(!S.schedule[d])S.schedule[d]={};
   if(val){
-    // เช็คชื่อซ้ำในวันเดียวกัน
+    // ห้ามชื่อซ้ำในวันเดียวกัน
     const dup=Object.entries(S.schedule[d]).find(([p2,v2])=>v2===val&&p2!==pos);
     if(dup){
       alert(`⚠ ${val} ถูก assign ในตำแหน่ง "${dup[0]}" ของวันที่ ${d} ไปแล้ว\n1 คนอยู่ได้เพียง 1 ตำแหน่งต่อวัน`);
       renderResult();return;
     }
-    // เช็คโควต้าตำแหน่งนั้น
+    // แจ้งเตือนถ้าไม่มีโควต้าตำแหน่งนี้
     if((S.quota[val][pos]||0)===0){
       const ok=confirm(`⚠ ${val} ไม่มีโควต้าในตำแหน่ง "${pos}"\nยืนยันการจัดเวรลงตำแหน่งนี้หรือไม่?`);
       if(!ok){renderResult();return;}
@@ -772,7 +765,7 @@ function cellChange(d,pos,val){
 
 // ─── Print ────────────────────────────────────────────────────────────────────
 function printSchedule(){
-  const ph = document.getElementById('print-header');
+  const ph=document.getElementById('print-header');
   ph.style.display='block';
   window.print();
   ph.style.display='none';
@@ -783,14 +776,13 @@ function exportCSV(){
   const sd=getShiftDays();
   const sortedDays=sd.map(d=>d.d).sort((a,b)=>a-b);
   const usedPos=[...new Set(sortedDays.flatMap(d=>Object.keys(S.schedule[d]||{})))];
-  const {y,m}=getMonthInfo();
+  const{y,m}=getMonthInfo();
   const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
   const hdr=`วันที่,วัน,${usedPos.join(',')}`;
   const rows=sortedDays.map(d=>{
     const dow=new Date(y,m-1,d).getDay();
-    const dayName=DAY_TH[dow];
     const cols=usedPos.map(pos=>(S.schedule[d]&&S.schedule[d][pos])||'').join(',');
-    return`${d},${dayName},${cols}`;
+    return`${d},${DAY_TH[dow]},${cols}`;
   });
   const csv=[`ตารางเวร ${getMonthLabel()}`,hdr,...rows].join('\n');
   const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
