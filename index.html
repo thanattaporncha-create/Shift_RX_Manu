@@ -83,12 +83,20 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
 @media print{
   .no-print{display:none!important}
   body{background:#fff}
+  h1{display:none!important}
   .app{max-width:100%;padding:0}
   .card{border:none;padding:0}
-  .result-table th,.result-table td{font-size:10px;padding:4px 5px}
+  .result-table th,.result-table td{font-size:10px;padding:4px 5px;background:#fff!important}
+  .result-table th{background:#f1efe8!important}
   .result-table select{display:none!important}
   .print-name{display:inline!important}
   .screen-name{display:none!important}
+  /* force color on person cells */
+  .result-table td[data-person]{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .cell-off{background:#fff!important}
+  /* column hiding */
+  .col-day{display:none!important}
+  .col-total{display:none!important}
 }
 @media screen{
   .print-name{display:none!important}
@@ -208,7 +216,7 @@ select:focus,input:focus{outline:2px solid #185FA5;outline-offset:1px}
     </div>
     <div id="print-header" style="display:none;margin-bottom:12px">
       <div style="font-size:18px;font-weight:700;text-align:center" id="print-title-text"></div>
-      <div style="font-size:13px;color:#5f5e5a;text-align:center;margin-top:4px">หน่วยงานเภสัชผลิต</div>
+      <div style="font-size:13px;color:#5f5e5a;text-align:center;margin-top:4px">งานผลิตยา ฝ่ายเภสัชกรรม</div>
     </div>
     <div class="result-wrap">
       <table class="result-table" id="result-table"></table>
@@ -757,14 +765,11 @@ function renderResult(){
     sortedDays.some(d => Object.keys(S.schedule[d]||{}).includes(pos))
   );
 
-  const DAY_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
-  const TYPE_LABEL={sat:'เสาร์',sun:'อาทิตย์',hol:'นักขัต'};
+  const DAY_TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 
   let html=`<thead><tr>
     <th class="date-col">วันที่</th>
-    <th style="min-width:60px">วัน</th>
     ${usedPos.map(pos=>`<th style="min-width:90px">${pos}</th>`).join('')}
-    <th style="min-width:70px">รวม/วัน</th>
   </tr></thead><tbody>`;
 
   sortedDays.forEach(d=>{
@@ -773,14 +778,12 @@ function renderResult(){
     const{y,m}=getMonthInfo();
     const dow =new Date(y,m-1,d).getDay();
     const dayName=DAY_TH[dow];
-    const typeName=TYPE_LABEL[t]||'';
     const filled=Object.values(S.schedule[d]||{}).filter(Boolean).length;
     const expected=S.slots[d]||5;
     const fillColor=filled<expected?'#A32D2D':'#3B6D11';
 
     html+=`<tr style="${rowBorder}">
-      <td class="date-col" style="padding:7px 10px">วันที่ ${d} <span style="font-size:10px;color:#5f5e5a">${typeName}</span></td>
-      <td style="font-weight:600">${dayName}</td>`;
+      <td class="date-col" style="padding:7px 10px">วันที่ ${d} <span style="font-size:10px;color:#5f5e5a">${dayName}</span></td>`;
 
     usedPos.forEach(pos=>{
       const posExists=Object.keys(S.schedule[d]||{}).includes(pos);
@@ -794,7 +797,7 @@ function renderResult(){
         const bgCol=pBgColor(val);
         const fgCol=pColor(val);
         const fullName=FULL_NAMES[val]||val;
-        html+=`<td style="padding:4px 5px;background:${bgCol};${warnBorder}">
+        html+=`<td data-person="${val}" style="padding:4px 5px;background:${bgCol};-webkit-print-color-adjust:exact;print-color-adjust:exact;${warnBorder}">
           <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
             <span class="screen-name" style="font-weight:700;color:${fgCol};font-size:12px">${val}</span>
             <span class="print-name" style="font-size:10px;font-weight:600;color:${fgCol}">${fullName}</span>
@@ -817,7 +820,7 @@ function renderResult(){
       }
     });
 
-    html+=`<td style="font-weight:600;color:${fillColor}">${filled}/${expected}</td></tr>`;
+    html+=`</tr>`;
   });
   html+='</tbody>';
   document.getElementById('result-table').innerHTML=html;
